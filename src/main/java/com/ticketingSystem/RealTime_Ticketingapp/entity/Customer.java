@@ -21,7 +21,7 @@ public class Customer {
     private int id;
     private String name;
     private int age;
-    private int phoneNumber;
+    private String phoneNumber;
     private String email;
 
 }
