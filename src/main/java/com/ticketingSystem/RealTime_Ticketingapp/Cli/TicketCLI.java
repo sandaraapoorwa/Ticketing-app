@@ -1,9 +1,7 @@
 package com.ticketingSystem.RealTime_Ticketingapp.Cli;
-
 import com.ticketingSystem.RealTime_Ticketingapp.service.TicketService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Scanner;
 
@@ -11,6 +9,7 @@ import java.util.Scanner;
 public class TicketCLI implements CommandLineRunner {
     private final TicketService ticketService;
     private volatile boolean running = true;
+    private long customerId = 1; // Counter for unique customer IDs
 
     public TicketCLI(TicketService ticketService) {
         this.ticketService = ticketService;
@@ -53,7 +52,7 @@ public class TicketCLI implements CommandLineRunner {
         long ticketId = 1;
         while (running) {
             synchronized (ticketService) {
-                while (ticketService.isFull()) { // Wait if queue is full
+                while (ticketService.isFull()) {
                     try {
                         ticketService.wait();
                     } catch (InterruptedException e) {
@@ -61,7 +60,7 @@ public class TicketCLI implements CommandLineRunner {
                     }
                 }
                 System.out.println(ticketService.releaseTicket(ticketId++));
-                ticketService.notifyAll(); // Notify waiting consumer
+                ticketService.notifyAll();
             }
             try {
                 Thread.sleep(200); // Simulates ticket release rate
@@ -74,15 +73,15 @@ public class TicketCLI implements CommandLineRunner {
     private void consumer() {
         while (running) {
             synchronized (ticketService) {
-                while (ticketService.isEmpty()) { // Wait if queue is empty
+                while (ticketService.isEmpty()) {
                     try {
                         ticketService.wait();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 }
-                System.out.println(ticketService.purchaseTicket());
-                ticketService.notifyAll(); // Notify waiting producer
+                System.out.println(purchaseTicketWithCustomerId());
+                ticketService.notifyAll();
             }
             try {
                 Thread.sleep(300); // Simulates ticket purchase rate
@@ -90,6 +89,17 @@ public class TicketCLI implements CommandLineRunner {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    private String purchaseTicketWithCustomerId() {
+        String ticketResponse = ticketService.purchaseTicket();
+        if (ticketResponse.startsWith("Ticket purchased!")) {
+            long currentCustomerId = customerId++;
+            int remainingTickets = ticketService.getAvailableTickets();
+            return "Customer " + currentCustomerId + " successfully purchased a ticket.\n" +
+                    "Ticket removed. Tickets remaining: " + remainingTickets;
+        }
+        return "No tickets available for purchase.";
     }
 
     private void displayStatus() {
@@ -102,4 +112,5 @@ public class TicketCLI implements CommandLineRunner {
         System.out.println("----------------------------------");
     }
 }
+
 
