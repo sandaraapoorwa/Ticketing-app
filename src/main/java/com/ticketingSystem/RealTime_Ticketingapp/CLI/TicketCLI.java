@@ -1,5 +1,4 @@
 package com.ticketingSystem.RealTime_Ticketingapp.CLI;
-
 import com.google.gson.Gson;
 import com.ticketingSystem.RealTime_Ticketingapp.SystemConfiguration.SystemConfig;
 import com.ticketingSystem.RealTime_Ticketingapp.Ticket.Customer;
@@ -22,11 +21,19 @@ public class TicketCLI {
         TicketSystem ticketSystem = new TicketSystem(systemConfig.getMaxTicketCapacity());
 
         // Initialize Vendor and Customer threads
-        Vendor vendor = new Vendor(ticketSystem, systemConfig.getTicketReleaseRate());
-        Customer customer = new Customer(ticketSystem, systemConfig.getCustomerRetrievalRate());
+        Vendor vendor1 = new Vendor(ticketSystem, 1, systemConfig.getTicketReleaseRate(), 1);
+        Vendor vendor2 = new Vendor(ticketSystem, 2, systemConfig.getTicketReleaseRate(), 2);
 
-        Thread vendorThread = new Thread(vendor, "VendorThread");
-        Thread customerThread = new Thread(customer, "CustomerThread");
+        Customer customer1 = new Customer(1, ticketSystem, systemConfig.getCustomerRetrievalRate());
+        // Start vendors in separate threads
+        Thread vendorThread1 = new Thread(vendor1);
+        Thread vendorThread2 = new Thread(vendor2);
+
+        Thread customerThread1 = new Thread(customer1);
+
+        vendorThread1.start();
+        vendorThread2.start();
+        customerThread1.start();
 
         System.out.println("\nCommands:\n1. start - Start the system\n2. stop - Stop the system\n3. status - Show ticket status\n4. exit - Exit CLI");
 
@@ -37,7 +44,7 @@ public class TicketCLI {
 
             switch (command) {
                 case "start":
-                    startSystem(vendorThread, customerThread);
+                    startSystem(vendorThread1,vendorThread2,customerThread1);
                     break;
                 case "stop":
                     stopSystem(ticketSystem);
@@ -56,9 +63,10 @@ public class TicketCLI {
     }
 
     // Handles the start of the system
-    private static void startSystem(Thread vendorThread, Thread customerThread) {
-        if (!vendorThread.isAlive() && !customerThread.isAlive()) {
-            vendorThread.start();
+    private static void startSystem(Thread vendorThread1, Thread vendorThread2, Thread customerThread) {
+        if (!vendorThread1.isAlive() && !vendorThread2.isAlive() && !customerThread.isAlive()) {
+            vendorThread1.start();
+            vendorThread2.start();
             customerThread.start();
             System.out.println("System started.");
         } else {

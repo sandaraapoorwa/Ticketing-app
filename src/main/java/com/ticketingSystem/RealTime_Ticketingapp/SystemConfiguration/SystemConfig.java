@@ -1,15 +1,17 @@
 package com.ticketingSystem.RealTime_Ticketingapp.SystemConfiguration;
 
-public class SystemConfig {
+import java.io.Serializable;
+
+public class SystemConfig implements Serializable {
     private int totalTickets;
     private int ticketReleaseRate;
     private int customerRetrievalRate;
     private int maxTicketCapacity;
 
-    // Getters and Setters
     public int getTotalTickets() {
         return totalTickets;
     }
+
     public void setTotalTickets(int totalTickets) {
         this.totalTickets = totalTickets;
     }

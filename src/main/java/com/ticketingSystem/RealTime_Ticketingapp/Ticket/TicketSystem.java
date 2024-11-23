@@ -1,10 +1,12 @@
 package com.ticketingSystem.RealTime_Ticketingapp.Ticket;
+
 import java.util.LinkedList;
 import java.util.Queue;
+
 public class TicketSystem {
-    private final Queue<String> tickets = new LinkedList<String>();
-    private final int maxTicketCapacity;
-    private boolean running = true;
+    private final Queue<String> tickets = new LinkedList<>(); // Ticket queue
+    private final int maxTicketCapacity; // Maximum capacity of the ticket pool
+    private boolean running = true; // Flag to indicate system status
 
     public TicketSystem(int maxTicketCapacity) {
         this.maxTicketCapacity = maxTicketCapacity;
@@ -45,6 +47,7 @@ public class TicketSystem {
         running = false;
         notifyAll(); // Wake up all threads
     }
+
     public boolean isRunning() {
         return running;
     }
