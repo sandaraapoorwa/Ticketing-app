@@ -2,9 +2,9 @@ package com.ticketingSystem.RealTime_Ticketingapp.CLI;
 
 import com.google.gson.Gson;
 import com.ticketingSystem.RealTime_Ticketingapp.SystemConfiguration.SystemConfig;
-import com.ticketingSystem.RealTime_Ticketingapp.Ticket.Customer;
-import com.ticketingSystem.RealTime_Ticketingapp.Ticket.TicketSystem;
-import com.ticketingSystem.RealTime_Ticketingapp.Ticket.Vendor;
+import com.ticketingSystem.RealTime_Ticketingapp.Function.Customer;
+import com.ticketingSystem.RealTime_Ticketingapp.Function.TicketSystem;
+import com.ticketingSystem.RealTime_Ticketingapp.Function.Vendor;
 
 import java.io.*;
 import java.util.Scanner;
@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class TicketCLI {
-
     private static final List<Thread> vendorThreads = new ArrayList<>();
     private static final List<Thread> customerThreads = new ArrayList<>();
     private static TicketSystem ticketSystem;
@@ -27,13 +26,6 @@ public class TicketCLI {
 
         // Initialize the ticket system
         ticketSystem = new TicketSystem(systemConfig.getMaxTicketCapacity());
-
-        // Allow dynamic addition of vendors and customers
-        int numVendors = promptInt(scanner, "Enter the number of vendors: ", 1, Integer.MAX_VALUE);
-        int numCustomers = promptInt(scanner, "Enter the number of customers: ", 1, Integer.MAX_VALUE);
-
-        initializeVendors(numVendors);
-        initializeCustomers(numCustomers);
 
         // Display commands
         System.out.println("""
@@ -78,16 +70,14 @@ public class TicketCLI {
             System.out.println("System is already running.");
             return;
         }
+        initializeVendors(systemConfig.getTotalTickets());
+        initializeCustomers(systemConfig.getTotalTickets());
 
         for (Thread vendorThread : vendorThreads) {
-            if (!vendorThread.isAlive()) {
-                vendorThread.start();
-            }
+            vendorThread.start();
         }
         for (Thread customerThread : customerThreads) {
-            if (!customerThread.isAlive()) {
-                customerThread.start();
-            }
+            customerThread.start();
         }
         systemRunning = true;
         System.out.println("System started.");
@@ -98,7 +88,6 @@ public class TicketCLI {
             System.out.println("System is not running.");
             return;
         }
-
         ticketSystem.stop();
         vendorThreads.clear();
         customerThreads.clear();
