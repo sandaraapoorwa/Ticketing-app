@@ -1,23 +1,22 @@
-package com.ticketingSystem.RealTime_Ticketingapp.Function;
+package com.ticketingSystem.RealTime_Ticketingapp.Functions;
 
 public class Vendor implements Runnable {
     private final int vendorID; // Unique ID for the vendor
-    private final TicketSystem ticketSystem; // Shared ticket system
+    private final TicketPoolSystem ticketPoolSystem; // Shared ticket system
     private final int ticketReleaseRate; // Rate at which tickets are released (in milliseconds)
     private int ticketCounter = 0;
-
-    public Vendor(TicketSystem ticketSystem, int vendorID, int ticketReleaseRate, int ticketCounter) {
-        this.ticketSystem = ticketSystem;
+    public Vendor(TicketPoolSystem ticketPoolSystem, int vendorID, int ticketReleaseRate, int ticketCounter) {
+        this.ticketPoolSystem = ticketPoolSystem;
         this.vendorID = vendorID;
         this.ticketReleaseRate = ticketReleaseRate;
         this.ticketCounter=ticketCounter;
     }
     @Override
     public void run() {
-        while (ticketSystem.isRunning()) {
+        while (ticketPoolSystem.isRunning()) {
             try {
                 String ticketId = "Vendor" + vendorID + "_Ticket" + (++ticketCounter); // Unique ticket ID
-                boolean added = ticketSystem.addTicket(ticketId); // Add ticket to the pool
+                boolean added = ticketPoolSystem.addTicket(ticketId); // Add ticket to the pool
                 if (added) {
                     System.out.println("Vendor " + vendorID + " added ticket: " + ticketId);
                 } else {

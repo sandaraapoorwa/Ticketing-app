@@ -2,9 +2,9 @@ package com.ticketingSystem.RealTime_Ticketingapp.CLI;
 
 import com.google.gson.Gson;
 import com.ticketingSystem.RealTime_Ticketingapp.SystemConfiguration.SystemConfig;
-import com.ticketingSystem.RealTime_Ticketingapp.Function.Customer;
-import com.ticketingSystem.RealTime_Ticketingapp.Function.TicketSystem;
-import com.ticketingSystem.RealTime_Ticketingapp.Function.Vendor;
+import com.ticketingSystem.RealTime_Ticketingapp.Functions.Customer;
+import com.ticketingSystem.RealTime_Ticketingapp.Functions.TicketPoolSystem;
+import com.ticketingSystem.RealTime_Ticketingapp.Functions.Vendor;
 
 import java.io.*;
 import java.util.Scanner;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class TicketCLI {
     private static final List<Thread> vendorThreads = new ArrayList<>();
     private static final List<Thread> customerThreads = new ArrayList<>();
-    private static TicketSystem ticketSystem;
+    private static TicketPoolSystem ticketPoolSystem;
     private static SystemConfig systemConfig = new SystemConfig();
     private static boolean systemRunning = false;
 
@@ -25,7 +25,7 @@ public class TicketCLI {
         promptConfigurationUpdate();
 
         // Initialize the ticket system
-        ticketSystem = new TicketSystem(systemConfig.getMaxTicketCapacity());
+        ticketPoolSystem = new TicketPoolSystem(systemConfig.getMaxTicketCapacity());
 
         // Display commands
         System.out.println("""
@@ -82,13 +82,12 @@ public class TicketCLI {
         systemRunning = true;
         System.out.println("System started.");
     }
-
     private static void stopSystem() {
         if (!systemRunning) {
             System.out.println("System is not running.");
             return;
         }
-        ticketSystem.stop();
+        ticketPoolSystem.stop();
         vendorThreads.clear();
         customerThreads.clear();
         systemRunning = false;
@@ -96,7 +95,7 @@ public class TicketCLI {
     }
 
     private static void showStatus() {
-        System.out.println("Tickets in pool: " + ticketSystem.getTicketCount());
+        System.out.println("Tickets in pool: " + ticketPoolSystem.getTicketCount());
         System.out.println("Vendor threads: " + vendorThreads.size());
         System.out.println("Customer threads: " + customerThreads.size());
     }
@@ -108,7 +107,7 @@ public class TicketCLI {
 
     private static void initializeVendors(int numVendors) {
         for (int i = 1; i <= numVendors; i++) {
-            Vendor vendor = new Vendor(ticketSystem, i, systemConfig.getTicketReleaseRate(), 0);
+            Vendor vendor = new Vendor(ticketPoolSystem, i, systemConfig.getTicketReleaseRate(), 0);
             Thread vendorThread = new Thread(vendor, "VendorThread-" + i);
             vendorThreads.add(vendorThread);
         }
@@ -116,7 +115,7 @@ public class TicketCLI {
 
     private static void initializeCustomers(int numCustomers) {
         for (int i = 1; i <= numCustomers; i++) {
-            Customer customer = new Customer(i, ticketSystem, systemConfig.getCustomerRetrievalRate());
+            Customer customer = new Customer(i, ticketPoolSystem, systemConfig.getCustomerRetrievalRate());
             Thread customerThread = new Thread(customer, "CustomerThread-" + i);
             customerThreads.add(customerThread);
         }

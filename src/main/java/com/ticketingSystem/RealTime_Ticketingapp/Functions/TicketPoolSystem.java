@@ -1,16 +1,15 @@
-package com.ticketingSystem.RealTime_Ticketingapp.Function;
-
+package com.ticketingSystem.RealTime_Ticketingapp.Functions;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class TicketSystem {
+public class TicketPoolSystem {
     private final Queue<String> tickets = new LinkedList<>(); // Ticket queue
     private final ReentrantLock lock = new ReentrantLock(); // Lock for thread-safety
     private final int maxTicketCapacity; // Maximum capacity of the ticket pool
     private boolean running = true; // Flag to indicate system status
 
-    public TicketSystem(int maxTicketCapacity) {
+    public TicketPoolSystem(int maxTicketCapacity) {
         this.maxTicketCapacity = maxTicketCapacity;
     }
     // Add a ticket to the pool
@@ -55,6 +54,7 @@ public class TicketSystem {
             lock.unlock();
         }
     }
+
     // Stop the ticket system
     public void stop() {
         lock.lock();
