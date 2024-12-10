@@ -4,24 +4,32 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class TicketPoolSystem {
-    private final Queue<String> tickets = new LinkedList<>(); // Ticket queue
-    private final ReentrantLock lock = new ReentrantLock(); // Lock for thread-safety
-    private final int maxTicketCapacity; // Maximum capacity of the ticket pool
-    private boolean running = true; // Flag to indicate system status
+    private final Queue<String> tickets = new LinkedList<>();
+    private final ReentrantLock lock = new ReentrantLock();
+    private final int maxTicketCapacity;
+    final int totalTickets;  // Total tickets to be produced
+    private int ticketsProduced = 0;  // Counter for the tickets produced
+    private boolean running = true;
 
-    public TicketPoolSystem(int maxTicketCapacity) {
+    public TicketPoolSystem(int maxTicketCapacity, int totalTickets) {
         this.maxTicketCapacity = maxTicketCapacity;
+        this.totalTickets = totalTickets;
     }
-    // Add a ticket to the pool
+
+    // Add a ticket to the pool if under the total ticket limit
     public boolean addTicket(String ticket) {
         lock.lock();
         try {
-            if (tickets.size() < maxTicketCapacity) {
+            if (ticketsProduced < totalTickets && tickets.size() < maxTicketCapacity) {
                 tickets.offer(ticket);
-                System.out.println("Ticket added: " + ticket + ", Total tickets: " + tickets.size());
+                ticketsProduced++;
+                System.out.println("Ticket added: " + ticket + ", Total tickets: " + ticketsProduced);
                 return true;
+            } else if (ticketsProduced >= totalTickets) {
+                System.out.println("Total ticket limit reached. No more tickets can be produced.");
+                return false;
             } else {
-                System.out.println("Cannot add ticket: Ticket pool is full (Capacity: " + maxTicketCapacity + ")");
+                System.out.println("Cannot add ticket: Ticket pool is full.");
                 return false;
             }
         } finally {
@@ -79,5 +87,9 @@ public class TicketPoolSystem {
     // Get the max ticket capacity
     public int getMaxTicketCapacity() {
         return maxTicketCapacity;
+    }
+
+    public int getTicketsProduced() {
+        return ticketsProduced;
     }
 }

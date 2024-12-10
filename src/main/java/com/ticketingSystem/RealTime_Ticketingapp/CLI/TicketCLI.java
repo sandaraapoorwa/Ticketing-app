@@ -5,7 +5,6 @@ import com.ticketingSystem.RealTime_Ticketingapp.SystemConfiguration.SystemConfi
 import com.ticketingSystem.RealTime_Ticketingapp.Functions.Customer;
 import com.ticketingSystem.RealTime_Ticketingapp.Functions.TicketPoolSystem;
 import com.ticketingSystem.RealTime_Ticketingapp.Functions.Vendor;
-
 import java.io.*;
 import java.util.Scanner;
 import java.util.List;
@@ -25,7 +24,7 @@ public class TicketCLI {
         promptConfigurationUpdate();
 
         // Initialize the ticket system
-        ticketPoolSystem = new TicketPoolSystem(systemConfig.getMaxTicketCapacity());
+        ticketPoolSystem = new TicketPoolSystem(systemConfig.getMaxTicketCapacity(), systemConfig.getTotalTickets());
 
         // Display commands
         System.out.println("""
@@ -52,9 +51,6 @@ public class TicketCLI {
                 case "status":
                     showStatus();
                     break;
-                case "config":
-                    showConfiguration();
-                    break;
                 case "exit":
                     stopSystem();
                     System.out.println("Exiting CLI. Goodbye!");
@@ -70,39 +66,23 @@ public class TicketCLI {
             System.out.println("System is already running.");
             return;
         }
-        initializeVendors(systemConfig.getTotalTickets());
-        initializeCustomers(systemConfig.getTotalTickets());
 
+        // Initialize vendors and customers using the configured numbers
+        initializeVendors(systemConfig.getNumberOfVendors());
+        initializeCustomers(systemConfig.getNumberOfCustomers());
+
+        // Start vendor threads
         for (Thread vendorThread : vendorThreads) {
             vendorThread.start();
         }
+
+        // Start customer threads
         for (Thread customerThread : customerThreads) {
             customerThread.start();
         }
+
         systemRunning = true;
         System.out.println("System started.");
-    }
-    private static void stopSystem() {
-        if (!systemRunning) {
-            System.out.println("System is not running.");
-            return;
-        }
-        ticketPoolSystem.stop();
-        vendorThreads.clear();
-        customerThreads.clear();
-        systemRunning = false;
-        System.out.println("System stopped and threads cleared.");
-    }
-
-    private static void showStatus() {
-        System.out.println("Tickets in pool: " + ticketPoolSystem.getTicketCount());
-        System.out.println("Vendor threads: " + vendorThreads.size());
-        System.out.println("Customer threads: " + customerThreads.size());
-    }
-
-    private static void showConfiguration() {
-        System.out.println("Current Configuration:");
-        System.out.println(systemConfig);
     }
 
     private static void initializeVendors(int numVendors) {
@@ -119,6 +99,39 @@ public class TicketCLI {
             Thread customerThread = new Thread(customer, "CustomerThread-" + i);
             customerThreads.add(customerThread);
         }
+    }
+
+    private static void stopSystem() {
+        if (!systemRunning) {
+            System.out.println("System is not running.");
+            return;
+        }
+
+        // Stop all vendor and customer threads
+        for (Thread vendorThread : vendorThreads) {
+            vendorThread.interrupt();  // Interrupt vendor threads
+        }
+        for (Thread customerThread : customerThreads) {
+            customerThread.interrupt();  // Interrupt customer threads
+        }
+        // Clear thread lists
+        vendorThreads.clear();
+        customerThreads.clear();
+        // Stop the ticket pool system
+        ticketPoolSystem.stop();
+        systemRunning = false;
+        System.out.println("System stopped and threads cleared.");
+    }
+
+    private static void showStatus() {
+        System.out.println("Tickets in pool: " + ticketPoolSystem.getTicketCount());
+        System.out.println("Vendor threads: " + vendorThreads.size());
+        System.out.println("Customer threads: " + customerThreads.size());
+    }
+
+    private static void showConfiguration() {
+        System.out.println("Current Configuration:");
+        System.out.println(systemConfig);
     }
 
     private static void promptConfigurationUpdate() {
@@ -162,11 +175,25 @@ public class TicketCLI {
     private static void configureSystem() {
         Scanner scanner = new Scanner(System.in);
 
+        // Prompt for total tickets
         systemConfig.setTotalTickets(promptInt(scanner, "Enter total tickets (positive integer): ", 1, Integer.MAX_VALUE));
+
+        // Prompt for ticket release rate
         systemConfig.setTicketReleaseRate(promptInt(scanner, "Enter ticket release rate in milliseconds (positive integer): ", 1, Integer.MAX_VALUE));
+
+        // Prompt for customer retrieval rate
         systemConfig.setCustomerRetrievalRate(promptInt(scanner, "Enter customer retrieval rate in milliseconds (positive integer): ", 1, Integer.MAX_VALUE));
-        systemConfig.setMaxTicketCapacity(promptInt(scanner, "Enter max ticket capacity (greater than 0): ", 1, systemConfig.getTotalTickets()));
+
+        // Prompt for max ticket capacity
+        systemConfig.setMaxTicketCapacity(promptInt(scanner, "Enter max ticket capacity (less than or equal to total tickets): ", 1, systemConfig.getTotalTickets()));
+
+        // New prompts for number of vendors and customers
+        systemConfig.setNumberOfVendors(promptInt(scanner, "Enter number of vendors: ", 1, Integer.MAX_VALUE));
+        systemConfig.setNumberOfCustomers(promptInt(scanner, "Enter number of customers: ", 1, Integer.MAX_VALUE));
+
+        saveConfiguration();
     }
+
 
     private static int promptInt(Scanner scanner, String message, int min, int max) {
         while (true) {
