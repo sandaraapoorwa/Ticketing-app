@@ -9,6 +9,7 @@ public class Customer implements Runnable {
         this.ticketPoolSystem = ticketPoolSystem;
         this.customerRetrievalRate = customerRetrievalRate;
     }
+    
     @Override
     public void run() {
         while (ticketPoolSystem.isRunning()) {
