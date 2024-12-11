@@ -25,7 +25,7 @@ public class TicketCLI {
         promptConfigurationUpdate();
 
         // Initialize the ticket system
-        ticketPoolSystem = new TicketPoolSystem(systemConfig.getMaxTicketCapacity());
+        ticketPoolSystem = new TicketPoolSystem(systemConfig.getMaxTicketCapacity(), systemConfig.getTotalTickets());
 
         // Display commands
         System.out.println("""
@@ -33,8 +33,7 @@ public class TicketCLI {
                 1. start - Start the system
                 2. stop - Stop the system
                 3. status - Show ticket status
-                4. config - Show current configuration
-                5. exit - Exit CLI
+                4. exit - Exit CLI
                 """);
 
         // Main command loop
@@ -43,19 +42,16 @@ public class TicketCLI {
             String command = scanner.nextLine().trim().toLowerCase();
 
             switch (command) {
-                case "start":
+                case "1":
                     startSystem();
                     break;
-                case "stop":
+                case "2":
                     stopSystem();
                     break;
-                case "status":
+                case "3":
                     showStatus();
                     break;
-                case "config":
-                    showConfiguration();
-                    break;
-                case "exit":
+                case "4":
                     stopSystem();
                     System.out.println("Exiting CLI. Goodbye!");
                     return;
@@ -82,6 +78,7 @@ public class TicketCLI {
         systemRunning = true;
         System.out.println("System started.");
     }
+
     private static void stopSystem() {
         if (!systemRunning) {
             System.out.println("System is not running.");
@@ -98,11 +95,6 @@ public class TicketCLI {
         System.out.println("Tickets in pool: " + ticketPoolSystem.getTicketCount());
         System.out.println("Vendor threads: " + vendorThreads.size());
         System.out.println("Customer threads: " + customerThreads.size());
-    }
-
-    private static void showConfiguration() {
-        System.out.println("Current Configuration:");
-        System.out.println(systemConfig);
     }
 
     private static void initializeVendors(int numVendors) {
@@ -123,15 +115,23 @@ public class TicketCLI {
 
     private static void promptConfigurationUpdate() {
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Do you want to load the existing configuration? (yes/no): ");
-        String input = scanner.nextLine().trim().toLowerCase();
+        String input;
 
-        if ("yes".equals(input)) {
-            loadConfiguration();
-        } else {
-            System.out.println("Starting fresh configuration setup.");
-            configureSystem();
-            saveConfiguration();
+        while (true) {
+            System.out.print("Do you want to load the existing configuration? (yes/no): ");
+            input = scanner.nextLine().trim().toLowerCase();
+
+            if ("yes".equals(input)) {
+                loadConfiguration();
+                break; // Exit the loop after handling "yes"
+            } else if ("no".equals(input)) {
+                System.out.println("Starting fresh configuration setup.");
+                configureSystem();
+                saveConfiguration();
+                break; // Exit the loop after handling "no"
+            } else {
+                System.out.println("Invalid input. Please enter 'yes' or 'no'.");
+            }
         }
     }
 
@@ -184,3 +184,5 @@ public class TicketCLI {
         }
     }
 }
+
+
